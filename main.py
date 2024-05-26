@@ -56,6 +56,48 @@ def plot_lagrange_interpolation(y_interpolated_20, y_interpolated_5, x_values, y
     plt.show()
 
 
+def cubic_spline_interpolation(x_values, y_values, x):
+    n = len(x_values)
+    a = y_values.copy()
+
+    h = [x_values[i + 1] - x_values[i] for i in range(n - 1)]
+    alpha = [(3/h[i]) * (a[i + 1] - a[i]) - (3/h[i - 1]) * (a[i] - a[i - 1]) for i in range(1, n - 1)]
+
+    l = [1] * n
+    mu = [0] * n
+    z = [0] * n
+
+    for i in range(1, n - 1):
+        l[i] = 2 * (x_values[i + 1] - x_values[i - 1]) - h[i - 1] * mu[i - 1]
+        mu[i] = h[i] / l[i]
+        z[i] = (alpha[i - 1] - h[i - 1] * z[i - 1]) / l[i]
+
+    b = [0] * n
+    c = [0] * n
+    d = [0] * n
+
+    for j in range(n - 2, -1, -1):
+        c[j] = z[j] - mu[j] * c[j + 1]
+        b[j] = (a[j + 1] - a[j]) / h[j] - h[j] * (c[j + 1] + 2 * c[j]) / 3
+        d[j] = (c[j + 1] - c[j]) / (3 * h[j])
+
+    for i in range(n - 1):
+        if x_values[i] <= x <= x_values[i + 1]:
+            dx = x - x_values[i]
+            return a[i] + b[i] * dx + c[i] * dx ** 2 + d[i] * dx ** 3
+
+def plot_cubic_spline_interpolation(x_values, y_values, y_interpolated_5, y_interpolated_20):
+    plt.plot(x_values, y_values, label='Original Data')
+    plt.plot(x_values, y_interpolated_5, label='Interpolated Data 5 nodes')
+    plt.plot(x_values, y_interpolated_20, label='Interpolated Data 20 nodes')
+    plt.title('Cubic Spline Interpolation')
+    plt.xlabel('X Values')
+    plt.ylabel('Y Values')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 def main():
     file_path = '100.csv'
     file_path2='MountEverest.csv'
@@ -76,6 +118,10 @@ def main():
 
     plot_lagrange_interpolation(y_interpolated_20, y_interpolated_5, x_values, y_values)
 
+    y_interpolated_5 = [cubic_spline_interpolation(x_nodes_5, y_nodes_5, x) for x in x_values]
+    y_interpolated_20 = [cubic_spline_interpolation(x_nodes_20, y_nodes_20, x) for x in x_values]
+    plot_cubic_spline_interpolation(x_values, y_values, y_interpolated_5, y_interpolated_20)
+
     x_nodes_5 = x_values_ev[1::len(x_values_ev) // 5]
     y_nodes_5 = y_values_ev[1::len(y_values_ev) // 5]
     x_nodes_20 = x_values_ev[1::len(x_values_ev) // 10]
@@ -89,6 +135,10 @@ def main():
         y_interpolated_20.append(lagrange_interpolation(x_nodes_20, y_nodes_20, x))
 
     plot_lagrange_interpolation(y_interpolated_20, y_interpolated_5, x_values_ev, y_values_ev)
+
+    y_interpolated_5 = [cubic_spline_interpolation(x_nodes_5, y_nodes_5, x) for x in x_values_ev]
+    y_interpolated_20 = [cubic_spline_interpolation(x_nodes_20, y_nodes_20, x) for x in x_values_ev]
+    plot_cubic_spline_interpolation(x_values_ev, y_values_ev, y_interpolated_5, y_interpolated_20)
 
 if __name__ == "__main__":
     main()
